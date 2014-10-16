@@ -7,7 +7,7 @@ if (! isset($_GET["url"])) die("No url found");
 
 $firstdotpos=strpos($_GET["url"], '.');
 if ($firstdotpos == false) {
-	echo "Zone incorrecte <br/>";
+	echo "Invalid URL<br/>";
 	exit();
 }
 
@@ -32,7 +32,7 @@ try {
 	}
 
 	// Charge la zone
-	echo "Chargement de la zone: " . $dnszone." </br>";
+	echo "Load DNS Zone: " . $dnszone." </br>";
 	$zone = $client->dns_zone_get($session_id, array('origin' => $dnszone));
 	if(count($zone)==0) {
 		echo "DNS Zone not found</br>";
@@ -41,11 +41,7 @@ try {
 	else
 	{
 		echo "DNS Zone found</br>";
-		
-		echo "Get Client ID from sys_userid<br/>";
-		$client_id = $client->client_get_id($session_id,$zone[0]['sys_userid']);
-		echo "Client_ID found: ".$client_id."<br/>";
-		
+	
 		// echo "Zone content<br/>";
 		// echo var_dump($zone);
 		// echo "<br/>";
@@ -54,7 +50,7 @@ try {
 		//* Get the dns record
 		echo "Record Content<br/>";
 		$dns_record = $client->dns_a_get($session_id, array('name' => $_GET["url"]));
-		var_dump($dns_record);
+		// var_dump($dns_record);
 		echo "End content<br/>";
 		
 		// Change ip
