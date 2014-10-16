@@ -15,3 +15,9 @@ The remote ispconfig username must have
   - DNS A function
 
 You must update the URL of your ISPConfig Installation in $soap_location and $soap_uri
+
+Sources and ref :
+- https://www.howtoforge.de/forum/threads/dyndns-mit-ispconfig.8089/
+- http://www.ispconfig.org
+
+
