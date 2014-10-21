@@ -3,12 +3,13 @@ ddns-update-for-ispconfig
 
 This php script use ISPConfig 3 Remote API to update an ip in the DNS.
 
-URL Call : http://server/?username=ispcruser&password=ruserpass&url=dns
+URL Call : http://server/?username=ispcruser&password=ruserpass&hostname=dns&myip=ip
 
 Where :
   - ispcruser : Remote Username in ISPConfig
   - ruserpass : Remote User password in ISPConfig
-  - url : DNS A entry to update
+  - hostname : DNS A entry to update
+  - myip : IP
   
 The remote ispconfig username must have 
   - DNS Zone function
