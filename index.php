@@ -64,9 +64,9 @@ if (!isset($_GET["hostname"])) {
 }
 
 if(substr($_GET['hostname'], -1, 1) != '.') {
-    $log->debug("Invalid HOSTNAME format : ".$_GET["hostname"]) ;
+    $log->debug("HOSTNAME must finish with a dot (update format) : ".$_GET["hostname"]) ;
     $_GET['hostname'] .= '.' ; 
-    $log->debug("HOSTNAME changed to ".$_GET['hostname']) ; 
+    $log->debug("HOSTNAME updated to ".$_GET['hostname']) ; 
 }
 
 $firstdotpos=strpos($_GET["hostname"], '.');
