@@ -1,30 +1,45 @@
 <?php
 
 class log {
-    private $file = "log.txt" ; 
+    private $file; 
     
+	function __construct($name) {
+        $this->file = "log_".str_replace('.', '_', $name).".txt" ; 
+    }
+	
     function debug($log) {
-        $log = date('Y-m-d H:i:s')." ".$log."\r\n"; 
-        $maj = fopen($this->file,"a"); // On ouvre le fichier en lecture/écriture
+        $log = date('Y-m-d H:i:s')." ".$log."\n"; 
+        $maj = fopen($this->file,"a+"); // On ouvre le fichier en lecture/écriture
         fseek($maj, 0, SEEK_END);
         fputs($maj, $log);            // On écrit dans le fichier
         fclose($maj);    
     }
     
     function clean() {
-        $maj = fopen($this->file,"w+"); // On ouvre le fichier en lecture/écriture
+        $maj = fopen($this->file,"a+"); // On ouvre le fichier en lecture/écriture
         ftruncate($maj,0);            // on efface le contenu d'un fichier
         fclose($maj);  
     }
    
 }
 
+$log = new log("main") ; 
+$log->debug("Session started by ".$_SERVER["REMOTE_ADDR"]);
+
+if (!isset($_GET["hostname"])) {
+    echo "dnserr" ; 
+    $log->debug("hostname is missing") ; 
+	exit;
+}
+$log->debug("Hostname ".$_GET["hostname"]." found, log in specific log file");
+
+$log = new log($_GET["hostname"]);
+$log->clean() ; // on clean le fichier log
+$log->debug("Session started by ".$_SERVER["REMOTE_ADDR"]);
+
 $soap_location = 'https://10.0.0.251:8080/remote/index.php';
 $soap_uri = 'https://10.0.0.251:8080/remote/';
 
-$log = new log() ; 
-$log->clean() ; // on clean le fichier log
-$log->debug("Session started");
 
 if(!isset($_GET["username"]) || !isset($_GET["password"])) {
     $log->debug('username or password not found in get method') ; 
@@ -39,9 +54,10 @@ else
 {
 	$_SERVER['PHP_AUTH_USER'] = $_GET['username'];
 	$_SERVER['PHP_AUTH_PW'] = $_GET['password'];
-	$log->debug("AUTH USER ".$_SERVER['PHP_AUTH_USER']);
-    $log->debug("AUTH PASS ".$_SERVER['PHP_AUTH_PW']);
 }
+
+$log->debug("AUTH USER ".$_SERVER['PHP_AUTH_USER']);
+$log->debug("AUTH PASS ".$_SERVER['PHP_AUTH_PW']);
 
 
 if (!isset($_GET['myip']))
@@ -53,15 +69,16 @@ else
 {
 	$ip = $_GET['myip'];
 	$log->debug("IP in URL: ".$ip);
+	if(preg_match("/(^10\.)|(^192\.168\.)|(^172\.(1[6-9]|2[0-9]|3[0-2])\.)/i", $ip))
+	{
+		$ip=$_SERVER["REMOTE_ADDR"] ;
+		$log->debug("IP in URL is a private IP, you can't use it for Internet routing. Use REMOTE_ADDR instead: ".$_SERVER["REMOTE_ADDR"]);
+	}
 }
 
-$log->debug("Start script by ".$ip." at ".$date);
 
-if (!isset($_GET["hostname"])) {
-    echo "dnserr" ; 
-    $log->debug("hostname is missing") ; 
-	exit;
-}
+
+
 
 if(substr($_GET['hostname'], -1, 1) != '.') {
     $log->debug("HOSTNAME must finish with a dot (update format) : ".$_GET["hostname"]) ;
