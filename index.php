@@ -1,27 +1,12 @@
 <?php
+require_once('log.inc.php');
 
-class log {
-    private $file; 
-    
-	function __construct($name) {
-        $this->file = "log_".str_replace('.', '_', $name).".txt" ; 
-    }
-	
-    function debug($log) {
-        $log = date('Y-m-d H:i:s')." ".$log."\n"; 
-        $maj = fopen($this->file,"a+"); // On ouvre le fichier en lecture/écriture
-        fseek($maj, 0, SEEK_END);
-        fputs($maj, $log);            // On écrit dans le fichier
-        fclose($maj);    
-    }
-    
-    function clean() {
-        $maj = fopen($this->file,"a+"); // On ouvre le fichier en lecture/écriture
-        ftruncate($maj,0);            // on efface le contenu d'un fichier
-        fclose($maj);  
-    }
-   
-}
+// ISPConfig URL for REMOTE API
+$soap_location = 'https://10.0.0.251:8080/remote/index.php';
+$soap_uri = 'https://10.0.0.251:8080/remote/';
+
+// Exception List
+$exception = array('example.com','example2.com.');
 
 $log = new log("main") ; 
 $log->debug("Session started by ".$_SERVER["REMOTE_ADDR"]);
@@ -37,8 +22,6 @@ $log = new log($_GET["hostname"]);
 $log->clean() ; // on clean le fichier log
 $log->debug("Session started by ".$_SERVER["REMOTE_ADDR"]);
 
-$soap_location = 'https://10.0.0.251:8080/remote/index.php';
-$soap_uri = 'https://10.0.0.251:8080/remote/';
 
 
 if(!isset($_GET["username"]) || !isset($_GET["password"])) {
@@ -74,6 +57,19 @@ else
 		$ip=$_SERVER["REMOTE_ADDR"] ;
 		$log->debug("IP in URL is a private IP, you can't use it for Internet routing. Use REMOTE_ADDR instead: ".$_SERVER["REMOTE_ADDR"]);
 	}
+	
+	$found=false;
+	foreach ($exception as $domain)
+	{
+		if(preg_match("/".$domain."$/i", $_GET['hostname']))
+		{
+			$found=true;
+			$ip=$_SERVER["REMOTE_ADDR"] ;
+			$log->debug("domain name ". $domain ." based on the hostname is in the exception list, You can not use $myip with this hostname. Use REMOTE_ADDR instead: ".$_SERVER["REMOTE_ADDR"]);
+		}
+	}
+	if (!found) $log->debug('No exception found for this hostname: '.$_GET['hostname']);
+	
 }
 
 
