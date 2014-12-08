@@ -8,12 +8,13 @@ URL Call : http://server/?username=ispcruser&password=ruserpass&hostname=dns&myi
 Where :
   - ispcruser : Remote Username in ISPConfig
   - ruserpass : Remote User password in ISPConfig
-  - hostname : DNS A entry to update
-  - myip : IP
+  - hostname : DNS A (ipv4) or AAAA (ipv6) entry to update
+  - myip : IPv4 or IPv6
   
 The remote ispconfig username must have 
   - DNS Zone function
   - DNS A function
+  - DNS AAAA function
 
 You must update the URL of your ISPConfig Installation in $soap_location and $soap_uri
 
