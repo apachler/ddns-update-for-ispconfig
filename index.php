@@ -53,16 +53,6 @@ else
 	$ip = $_GET['myip'];
 	$log->debug("IP in URL: ".$ip);
 	
-	// TODO: Detect if $ip is an IPv4 or IPv6 address to adapt regex control
-	// http://www.ewhathow.com/2013/08/how-to-validate-or-detect-an-ipv4-or-an-ipv6-address-in-php/
-	// http://php.net/manual/fr/function.filter-var.php
-	// http://php.net/manual/fr/filter.filters.flags.php
-	if(preg_match("/(^10\.)|(^192\.168\.)|(^172\.(1[6-9]|2[0-9]|3[0-2])\.)/i", $ip))
-	{
-		$ip=$_SERVER["REMOTE_ADDR"] ;
-		$log->debug("IP in URL is a private IP, you can't use it for Internet routing. Use REMOTE_ADDR instead: ".$_SERVER["REMOTE_ADDR"]);
-	}
-	
 	$found=false;
 	foreach ($exception as $domain)
 	{
@@ -77,6 +67,27 @@ else
 	
 }
 
+// Detect if $ip is an IPv4 or IPv6 address to adapt regex control
+// http://www.ewhathow.com/2013/08/how-to-validate-or-detect-an-ipv4-or-an-ipv6-address-in-php/
+// http://php.net/manual/fr/function.filter-var.php
+// http://php.net/manual/fr/filter.filters.flags.php
+$is_ipv4=filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+$is_ipv6=filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
+if (!$is_ipv4 && !is_ipv6)
+{
+	$log->debug($ip." is not a valid ip address");
+	exit;
+}
+
+// Check if ipv4 is in a private class
+if (($is_ipv4) && (preg_match("/(^10\.)|(^192\.168\.)|(^172\.(1[6-9]|2[0-9]|3[0-2])\.)/i", $ip)))
+{
+		$ip=$_SERVER["REMOTE_ADDR"] ;
+		$is_ipv4=filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+		$log->debug("IP in URL is a private IP, you can't use it for Internet routing. Use REMOTE_ADDR instead: ".$_SERVER["REMOTE_ADDR"]);
+}
+
+// Check if name end with dot .
 if(substr($_GET['hostname'], -1, 1) != '.') {
     $log->debug("HOSTNAME must finish with a dot (update format) : ".$_GET["hostname"]) ;
     $_GET['hostname'] .= '.' ; 
@@ -87,7 +98,7 @@ $firstdotpos=strpos($_GET["hostname"], '.');
 
 if ($firstdotpos == false) {
 	$log->debug("Invalid HOSTNAME format : ".$_GET["hostname"]);
-    echo "notqdn" ; 
+    echo "notfqdn" ; 
 	exit();
 }
 
@@ -130,24 +141,34 @@ try {
 	
 		//* Get the dns record
 		$log->debug("Record Content");
-		// TODO: if IPv4 use dns_a_get, if ipv6 use dns_aaaa_get
-		$dns_record = $client->dns_a_get($session_id, array('name' => $_GET["hostname"]));
-		// var_dump($dns_record);
-		$log->debug("End content");
+		
+		// if IPv4 use dns_a_get, if ipv6 use dns_aaaa_get
+		if ($is_ipv4) $dns_record = $client->dns_a_get($session_id, array('name' => $_GET["hostname"]));
+		if ($is_ipv6) $dns_record = $client->dns_aaaa_get($session_id, array('name' => $_GET["hostname"]));
+		
 		// check if record is A IPv4 (not cname, mx, txt, ...)
 		$log->debug("Check record type");
-		if ($dns_record[0]['type']!='a'){
-			$log->debug("Record type is not A. You can only update a A record");
+		if ($is_ipv4 && ($dns_record[0]['type']!='a')){
+			$log->debug("Record type is not A. You can only update a A record with IPv4");
 			echo "dnserr";
 			exit;
 		}
+
+		if ($is_ipv6 && ($dns_record[0]['type']!='aaaa')){
+			$log->debug("Record type is not AAAA. You can only update a AAAA record with IPv6");
+			echo "dnserr";
+			exit;
+		}
+		
 		$log->debug("End check record type");
 		
 		
 		if ($dns_record[0]['data']!=$ip){
 			$dns_record[0]['data'] = $ip;
+			
 			// TODO: if IPv4 use dns_a_update, if ipv6 use dns_aaaa_update
-			$affected_rows = $client->dns_a_update($session_id, 0, $dns_record[0]['id'], $dns_record[0]);
+			if ($is_ipv4) $affected_rows = $client->dns_a_update($session_id, 0, $dns_record[0]['id'], $dns_record[0]);
+			if ($is_ipv6) $affected_rows = $client->dns_aaaa_update($session_id, 0, $dns_record[0]['id'], $dns_record[0]);
 
 			$log->debug("Old serial number ".$zone[0]['serial']);
 			$newserial = $zone[0]['serial']+1;
