@@ -52,6 +52,11 @@ else
 {
 	$ip = $_GET['myip'];
 	$log->debug("IP in URL: ".$ip);
+	
+	// TODO: Detect if $ip is an IPv4 or IPv6 address to adapt regex control
+	// http://www.ewhathow.com/2013/08/how-to-validate-or-detect-an-ipv4-or-an-ipv6-address-in-php/
+	// http://php.net/manual/fr/function.filter-var.php
+	// http://php.net/manual/fr/filter.filters.flags.php
 	if(preg_match("/(^10\.)|(^192\.168\.)|(^172\.(1[6-9]|2[0-9]|3[0-2])\.)/i", $ip))
 	{
 		$ip=$_SERVER["REMOTE_ADDR"] ;
@@ -71,10 +76,6 @@ else
 	if (!found) $log->debug('No exception found for this hostname: '.$_GET['hostname']);
 	
 }
-
-
-
-
 
 if(substr($_GET['hostname'], -1, 1) != '.') {
     $log->debug("HOSTNAME must finish with a dot (update format) : ".$_GET["hostname"]) ;
@@ -129,11 +130,23 @@ try {
 	
 		//* Get the dns record
 		$log->debug("Record Content");
+		// TODO: if IPv4 use dns_a_get, if ipv6 use dns_aaaa_get
 		$dns_record = $client->dns_a_get($session_id, array('name' => $_GET["hostname"]));
 		// var_dump($dns_record);
 		$log->debug("End content");
+		// check if record is A IPv4 (not cname, mx, txt, ...)
+		$log->debug("Check record type");
+		if ($dns_record[0]['type']!='a'){
+			$log->debug("Record type is not A. You can only update a A record");
+			echo "dnserr";
+			exit;
+		}
+		$log->debug("End check record type");
+		
+		
 		if ($dns_record[0]['data']!=$ip){
 			$dns_record[0]['data'] = $ip;
+			// TODO: if IPv4 use dns_a_update, if ipv6 use dns_aaaa_update
 			$affected_rows = $client->dns_a_update($session_id, 0, $dns_record[0]['id'], $dns_record[0]);
 
 			$log->debug("Old serial number ".$zone[0]['serial']);
