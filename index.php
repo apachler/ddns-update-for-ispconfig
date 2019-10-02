@@ -148,13 +148,13 @@ try {
 		
 		// check if record is A IPv4 (not cname, mx, txt, ...)
 		$log->debug("Check record type");
-		if ($is_ipv4 && ($dns_record[0]['type']!='a')){
+		if ($is_ipv4 && ($dns_record[0]['type']!='A')){
 			$log->debug("Record type is not A. You can only update a A record with IPv4");
 			echo "dnserr";
 			exit;
 		}
 
-		if ($is_ipv6 && ($dns_record[0]['type']!='aaaa')){
+		if ($is_ipv6 && ($dns_record[0]['type']!='AAAA')){
 			$log->debug("Record type is not AAAA. You can only update a AAAA record with IPv6");
 			echo "dnserr";
 			exit;
