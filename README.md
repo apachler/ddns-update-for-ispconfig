@@ -1,7 +1,7 @@
 ddns-update-for-ispconfig
 =========================
 
-This php script use ISPConfig 3 Remote API to update an ip in the DNS.
+This php script uses ISPConfig 3 Remote API to update an ip in the DNS.
 
 If files are placed in directory named dyn in your website:
 URL Call : https://example.com/dyn/?username=ispcruser&password=ruserpass&hostname=dyn.example.com&myip=ip
