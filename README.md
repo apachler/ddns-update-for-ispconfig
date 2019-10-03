@@ -23,3 +23,6 @@ Sources and ref :
 - http://www.ispconfig.org
 
 
+
+FIX: Minor modification to fix type of dns entry that was not working
+
