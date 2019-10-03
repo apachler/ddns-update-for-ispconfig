@@ -26,3 +26,11 @@ Sources and ref :
 
 FIX: Minor modification to fix type of dns entry that was not working
 
+Example commands in shell:
+
+curl -s "https://example.com/dyn/?username=ispcruser&password=ruserpass&hostname=dyn.example.com&myip=$(dig @resolver1.opendns.com ANY myip.opendns.com +short)"
+
+curl -s "https://example.com/dyn/?username=ispcruser&password=ruserpass&hostname=dyn.example.com&myip=$(dig @resolver1.opendns.com A myip.opendns.com +short -4)"
+
+curl -s "https://example.com/dyn/?username=ispcruser&password=ruserpass&hostname=dyn.example.com&myip=$(dig @resolver1.opendns.com AAAA myip.opendns.com +short -6)"
+
